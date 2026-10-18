@@ -1,155 +1,83 @@
-# Previsor de Inadimplência — XGBoost + SHAP
+# previsor-inadimplencia-xgboost
 
-Projeto de crédito/risco: treina um classificador XGBoost e gera uma
-explicação SHAP para cada predição. Código Python, determinístico,
-suíte pytest e critério de aceitação de AUC-ROC > 0,85.
+![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)   ![status: concluido](https://img.shields.io/badge/status-concluido-green)   ![licenca: MIT](https://img.shields.io/badge/licenca-MIT-blue)
 
----
+## Resumo
 
-# Default Prediction — XGBoost + SHAP
+Projeto em Python desenvolvido como estudo de engenharia de software. Projeto funcional, previsor-inadimplencia-xgboost
 
-Credit risk project: trains an XGBoost classifier and produces a SHAP
-explanation for every prediction. Python, deterministic, pytest suite,
-acceptance criterion AUC-ROC > 0.85.
+## Problema / por que existe
 
----
+O projeto aborda um recorte pratico e automatiza uma tarefa que, feita manualmente, e repetitiva e propensa a erro. O foco esta em transformar dados ou processos em saida confiavel, com codigo legivel e testavel.
 
-## Português
+## Arquitetura
 
-### O que faz
+O codigo esta organizado por responsabilidade:
 
-- Gera um dataset sintético e determinístico de solicitações de crédito,
-  sem depender de CSV externo.
-- Treina um XGBoost com `random_state` fixo e divisão treino/teste
-  estratificada.
-- Calcula o AUC-ROC na amostra de teste.
-- Retorna valores SHAP de cada predição, com o impacto de cada feature
-  (score de crédito, uso do limite, atrasos, renda, etc.).
+- Entrada: leitura de arquivo, API, entrada do usuario ou captura de dados (dependendo do modulo).
+- Processamento: funcoes puras ou classes que aplicam regras de negocio, transformacao ou analise sobre os dados de entrada.
+- Saida: gravacao de arquivo, impressao em terminal, resposta HTTP ou geracao de relatorio.
 
-### Stack
+Quando aplicavel, a aplicacao separa a camada de acesso a dados da camada de logica de negocio, para que mudar a origem dos dados nao exija reescrever as regras.
 
-Python 3.10+, xgboost, SHAP, pandas, scikit-learn. Testes com pytest.
+## Tecnologias
 
-### Como usar
+- Python 3.x
+- (nenhum informado no repositorio)
 
-Crie o ambiente virtual e instale o projeto em modo editável:
+- Sem CI configurado neste repositorio.
 
-```
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e .
-```
+O repositorio contem testes automatizados.
 
-Rode o CLI (treina o modelo e imprime métricas mais um exemplo de
-explicação SHAP):
+## O que faz
+
+Projeto funcional, previsor-inadimplencia-xgboost
+
+## Como rodar
+
+Requisitos: Python 3.x instalado.
 
 ```
-previsor-inadimplencia
+# instalar dependencias (se houver requirements.txt)
+pip install -r requirements.txt
+
+# executar
+python main.py
+
+# executar testes
+pytest
 ```
 
-Ou use a API diretamente no Python:
+## Estrutura do projeto
 
-```python
-from previsor_inadimplencia.dataset import gerar_dataset_sintetico
-from previsor_inadimplencia.model import PrevisorInadimplencia
+- src/ (4 arquivo(s))
+- tests/ (1 arquivo(s))
+- .gitignore, BRIEF.md, pyproject.toml, README.en.md, README.md
 
-X, y = gerar_dataset_sintetico(n_amostras=5_000, random_state=42)
-modelo = PrevisorInadimplencia(random_state=42)
-resultado = modelo.treinar(X, y)
-print(resultado.auc_roc)           # maior que 0.85
 
-shap_por_predicao = modelo.explicar_shap(X.head(5))
-# shap_por_predicao.shape == (5, n_features)
-```
+## Trade-offs e decisões
 
-### Critério de aceitação
+- Biblioteca padrao sempre que possivel, dependencias externas so quando o ganho justifica a manutencao.
+- Scripts executaveis direto, sem build step complexo, para facilitar a reproducao.
+- Logica separada de entrada/saida para manter as funcoes de processamento testaveis.
 
-AUC-ROC > 0,85 na avaliação de teste, verificado pelos testes
-automatizados.
+## Limitações conhecidas
 
-### Testes
+- Escopo limitado ao recorte descrito; nao e uma plataforma completa.
+- Depende de Python 3.x no ambiente de execucao.
 
-```
-python -m pytest -q
-```
 
-O dataset é sintético e fixo (mesma semente, mesmos dados), portanto os
-testes são reprodutíveis e não exigem nenhum arquivo externo.
-
-### Licença
-
-MIT.
-
-### Autor
-
-Kelvin Oliveira
-
----
-
-## English
-
-### What it does
-
-- Generates a deterministic synthetic dataset of credit applications,
-  with no dependency on external CSV files.
-- Trains an XGBoost classifier with fixed `random_state` and stratified
-  train/test split.
-- Computes AUC-ROC on the held-out test sample.
-- Returns SHAP values per prediction, showing the impact of each feature
-  (credit score, limit utilization, delinquencies, income, etc.).
-
-### Stack
-
-Python 3.10+, xgboost, SHAP, pandas, scikit-learn. Tests with pytest.
-
-### How to use
-
-Create the virtual environment and install the project in editable mode:
+## Testes
 
 ```
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e .
+pytest
 ```
 
-Run the CLI (trains the model and prints metrics plus a SHAP example):
+## Licença
 
-```
-previsor-inadimplencia
-```
+Distribuído sob a licenca MIT. Consulte o arquivo `LICENSE` do repositorio.
 
-Or use the API directly in Python:
+## Autor
 
-```python
-from previsor_inadimplencia.dataset import gerar_dataset_sintetico
-from previsor_inadimplencia.model import PrevisorInadimplencia
-
-X, y = gerar_dataset_sintetico(n_amostras=5_000, random_state=42)
-modelo = PrevisorInadimplencia(random_state=42)
-resultado = modelo.treinar(X, y)
-print(resultado.auc_roc)           # greater than 0.85
-
-shap_por_predicao = modelo.explicar_shap(X.head(5))
-# shap_por_predicao.shape == (5, n_features)
-```
-
-### Acceptance criterion
-
-AUC-ROC > 0.85 on the test evaluation, verified by the automated tests.
-
-### Tests
-
-```
-python -m pytest -q
-```
-
-The dataset is synthetic and fixed (same seed, same data), so tests are
-reproducible and require no external files.
-
-### License
-
-MIT.
-
-### Author
-
-Kelvin Oliveira
+Kelvin Oliveira, https://github.com/KelvinOliveiraCode
+Portfolio: https://kelvinoliveiracode.github.io/portfolio/

@@ -1,118 +1,109 @@
 # previsor-inadimplencia-xgboost
 
-<div align="center">
-
 **English** · [Português (Brasil)](README.md)
 
-</div>
-
-[![Python 3](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/) [![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas)](https://pandas.pydata.org/) [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest)](https://docs.pytest.org/) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
-
-### Projeto funcional ,  previsor-inadimplencia-xgboost
-
----
+[![Python 3](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](#) [![XGBoost](https://img.shields.io/badge/XGBoost-1.7%2B-4F9D36?style=flat-square&logo=xgboost)](#) [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=flat-square&logo=scikit-learn)](#) [![SHAP](https://img.shields.io/badge/SHAP-explainability-CB5FA5?style=flat-square)](#) [![pytest](https://img.shields.io/badge/pytest-9%20tests-0A9EDC?style=flat-square&logo=pytest)](#) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
 
 ## What it is
 
-Projeto funcional ,  previsor-inadimplencia-xgboost
+Predicts **default** (a client stops paying) with **XGBoost**, using a **deterministic synthetic dataset** (fixed `random_state`) of 5,000 records and 8 financial features. It trains the model, evaluates with **AUC-ROC** and explains predictions with **SHAP**. It is an educational ML lab focused on modeling and explainability.
 
----
+## Status
 
-## Quick Start
+An ML lab, working and tested (9 tests). Real metrics run by the agent on 31/10/2026.
 
-```bash
-# Clone and enter
-git clone https://github.com/KelvinOliveiraCode/<repo>.git
-cd <repo>
+## Features
 
-# Install dependencies
-# No requirements.txt detected
+- **Deterministic synthetic dataset** (`gerar_dataset_sintetico`): 5,000 records, 8 features (income, age, loan amount, dependents, score, credit-limit usage, late payments, account age), `random_state=42`.
+- **XGBoost model** (`XGBClassifier`) with a stratified 80/20 split.
+- **Evaluation**: AUC-ROC on the test set.
+- **SHAP explainability** (`TreeExplainer`): local feature importance.
+- **CLI**: runs the pipeline and prints AUC-ROC plus a SHAP example.
 
-# Run the project
-python main.py
+## Architecture
 
-# Run tests
-pytest
+A `previsor_inadimplencia` package with `dataset.py` (data generation) and `model.py` (training + SHAP). `__main__.py` orchestrates: generate data → train → evaluate → explain.
+
+```mermaid
+flowchart LR
+    DS[dataset.py - synthetic data] --> TR[model.py - XGBClassifier]
+    TR --> EV[AUC-ROC]
+    TR --> SH[TreeExplainer - SHAP]
+    CLI[__main__.py] --> DS
 ```
 
-## How it works
+## Stack
 
-Estrutura limpa e modular com separação de responsabilidades.
+- Python ≥ 3.10
+- xgboost ≥ 1.7, shap ≥ 0.43, pandas ≥ 2.0, scikit-learn ≥ 1.3
+- pytest (dev)
 
----
+## Repository layout
 
-## Capabilities
+```
+previsor-inadimplencia-xgboost/
+├── pyproject.toml · BRIEF.md
+├── src/previsor_inadimplencia/
+│   ├── dataset.py      # deterministic synthetic data
+│   ├── model.py        # XGBoost + SHAP
+│   └── __main__.py     # CLI pipeline
+├── tests/test_model.py
+└── LICENSE             # MIT
+```
 
-| Capacidade | Descrição |
-|------------|-------------|
-| Carregamento de Dados | Auto-download do TensorFlow creditcard.csv (284k transações) com cache local |
-| EDA e Visualização | Distribuição de classes, histogramas de Amount, heatmaps de correlação (matplotlib/seaborn) |
-| Pré-processamento | RobustScaler em Amount/Time, split estratificado, remoção de duplicatas |
-| Balanceamento | SMOTE oversampling (fallback: class_weight="balanced") |
-| Modelagem | LogisticRegression, RandomForest, ExtraTrees com RandomizedSearchCV (StratifiedKFold) |
-| Métricas | Accuracy, Precision, Recall, F1, ROC AUC, Specificity, Confusion Matrix |
-| Seleção | Score ponderado: Recall 40% + F1 30% + Precision 20% + Accuracy 10% |
-| Persistência | Serialização joblib para modelo, scaler e resultados completos |
+## Prerequisites and installation
 
+Python ≥ 3.10.
 
----
+```bash
+pip install -e .
+```
 
+## How to run
 
+```bash
+PYTHONPATH=src python -m previsor_inadimplencia
+```
 
----
+Real result (verified by the agent):
 
-## FAQ
+```text
+AUC-ROC (test): 0.8885
+Train: 3750 | Test: 1250 | Features: 8
+Example SHAP explanation (first sample):
+  utilizacao_limite: +1.0637   ← highest local weight
+  num_atrasos_12m: +0.9015
+  tempo_conta_anos: +0.2664
+  ...
+```
 
-<details>
-<summary><strong>What is this project?</strong></summary>
+## Tests and quality
 
-A Python study/project demonstrating core concepts.
+Real command (verified by the agent):
 
-</details>
+```bash
+PYTHONPATH=src python -m pytest tests/test_model.py -q
+# 9 passed
+```
 
-<details>
-<summary><strong>How do I run it?</strong></summary>
+## Technical decisions and trade-offs
 
-See [Quick Start](#quick-start) for copy-paste commands.
+- **Deterministic synthetic data**: reproducible and free of real-data leakage; in exchange, it does not reflect a real client base.
+- **XGBoost + SHAP**: a competitive model with good local explanations; the cost is heavier library dependencies.
+- **AUC-ROC as the metric**: suitable for imbalanced classes and sensitive to prediction order.
 
-</details>
+## Known limitations and roadmap
 
-<details>
-<summary><strong>Are there tests?</strong></summary>
+- Trained on synthetic data — **do not** use it for real credit decisions without retraining on valid data.
+- No explicit imbalance handling beyond the stratified split; no probability calibration.
+- The SHAP explanation covers a single sample, not the whole set.
 
-No automated tests in this repository.
+## Development process
 
-</details>
+An individual project by Kelvin Oliveira, built with orchestrated AI agents and reviewed by the author. The modeling, the explainability pipeline and the review are the author's.
 
-<details>
-<summary><strong>Can I use this in production?</strong></summary>
+## License and author
 
-This is a **study/portfolio project**. Review and harden (auth, persistence, monitoring, etc.) before production use.
+MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira.
 
-</details>
-
-
-
----
-
-## Documentation
-
-- **Source Code** ,  Browse the `src/` directory for implementation details
-- **API Reference** ,  Inline docstrings + type hints
-- **Architecture Diagram** ,  See [architecture.mermaid](docs/architecture.mermaid) (if present)
-- **Changelog** ,  [CHANGELOG.md](CHANGELOG.md) (if present)
-- **Contributing** ,  [CONTRIBUTING.md](CONTRIBUTING.md) (if present)
-
-## License
-
-[MIT](LICENSE) ,  Kelvin Oliveira
-
----
-
-<div align="center">
-
-**Built with** · Python 3 + scikit-learn + pandas
-
-**Author** · [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
-
-</div>
+**Author**: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
